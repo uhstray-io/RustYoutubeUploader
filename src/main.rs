@@ -10,8 +10,8 @@ use terminal_color_builder::OutputFormatter as tcb;
 async fn preform_search(driver: &WebDriver) -> WebDriverResult<()> {
     // let  RF =  color::Fg(color::Red);
     // driver.goto("https://wikipedia.org").await?;
-    driver.goto("https://youtube.com").await?;
-    // driver.goto("https://google.com").await?;
+    //driver.goto("https://youtube.com").await?;
+    driver.goto("https://google.com").await?;
     //  let elem_form = driver.find(By::Id("search-form")).await?;
 
     driver
