@@ -10,3 +10,6 @@ tokio = "1.22.0"
 selenium-rs = "0.1.0"
 thirtyfour = "0.31.0"
 terminal_color_builder = "0.1.1"
+
+serde = {version = "*", features = ["derive"]}
+serde_json = "1.0.91"
