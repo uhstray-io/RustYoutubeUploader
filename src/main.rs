@@ -63,8 +63,35 @@ async fn preform_search(driver: &mut WebDriver) -> WebDriverResult<()> {
 
     tokio::time::sleep(Duration::from_secs_f32(0.25)).await;
 
-    let elem_button = driver.find(By::Css("input[type='submit']")).await?;
-    elem_button.click().await?;
+    //let elem_button = driver.find(By::Css("input[type='submit']")).await?;
+    //elem_button.click().await?;
+    driver.goto("https://www.youtube.com/upload").await?;
+
+    //let elem_button = driver.find(By::Css("button[id='button']")).await?;
+    //elem_button.click().await?;
+
+    tokio::time::sleep(Duration::from_secs_f32(0.25)).await;
+
+    // Find element from element.
+    let elem_text = driver.find(By::Css("input[type='file']")).await?;
+    // Type in the search terms.
+    elem_text.send_keys("C:/Users/godle/OneDrive/Desktop/Movie Edit/Clips/1.mp4").await?;
+
+    //this needs to be a variable - it takes a long time to uploade and this will be Variable 
+    tokio::time::sleep(Duration::from_secs_f32(5.5)).await;
+
+   
+    let elem_title = driver.find(By::Css("div[id='textbox']")).await?;
+    // Type in the search terms.
+    elem_title.send_keys("Test Title").await?;
+
+
+    tokio::time::sleep(Duration::from_secs_f32(0.5)).await;
+
+     //this does not work need to get it down 1
+    let elem_Desc = driver.find(By::Css("div[id='textbox']")).await?;
+    // Type in the search terms.
+    elem_Desc.send_keys("Test desc").await?;
 
     // Look for header to implicitly wait for the page to load.
     // let stat = driver.find(By::Id("result-stats")).await?;
