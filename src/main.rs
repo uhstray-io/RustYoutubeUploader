@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use thirtyfour::cookie::SameSite;
 use thirtyfour::prelude::*;
-use tokio;
+use tokio::fs;
 
 use serde::{Deserialize, Serialize};
 use terminal_color_builder::OutputFormatter as tcb;
@@ -36,7 +36,7 @@ impl CookieConfig {
 /// add_cookie imports cookies that you've exported from your browser and
 /// applys them to the driver. Once you reloaded, you should be logged in.
 async fn add_cookie(driver: &mut WebDriver) {
-    let s = tokio::fs::read_to_string("src/cookies.txt").await.unwrap();
+    let s = fs::read_to_string("src/cookies.txt").await.unwrap();
 
     let cookies: Vec<CookieConfig> = serde_json::from_str(&s).unwrap();
 
