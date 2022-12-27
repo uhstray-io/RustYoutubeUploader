@@ -1,3 +1,4 @@
 /target
 *.png
-configs/cookie.json
+configs/cookies.json
+*.mp4

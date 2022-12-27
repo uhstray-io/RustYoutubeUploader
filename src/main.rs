@@ -1,67 +1,22 @@
 use std::time::Duration;
 
-use thirtyfour::cookie::SameSite;
-use thirtyfour::prelude::*;
-use tokio::fs;
-
-use serde::{Deserialize, Serialize};
 use terminal_color_builder::OutputFormatter as tcb;
+use thirtyfour::prelude::*;
 
-#[derive(Clone, Serialize, Deserialize)]
-#[allow(non_snake_case)]
-struct CookieConfig {
-    domain: String,
-    expirationDate: Option<f32>,
-    hostOnly: bool,
-    httpOnly: bool,
-    name: String,
-    path: String,
-    sameSite: String,
-    secure: bool,
-    session: bool,
-    storeId: String,
-    value: String,
-    id: i32,
-}
+mod cookies;
+mod video;
 
-impl CookieConfig {
-    fn get_same_site(&self) -> SameSite {
-        if self.sameSite == "lax" {
-            return SameSite::None;
-        }
-        SameSite::None
-    }
-}
+use video::Video;
 
-/// add_cookie imports cookies that you've exported from your browser and
-/// applys them to the driver. Once you reloaded, you should be logged in.
-async fn add_cookie(driver: &mut WebDriver) {
-    let s = fs::read_to_string("src/cookies.txt").await.unwrap();
-
-    let cookies: Vec<CookieConfig> = serde_json::from_str(&s).unwrap();
-
-    for cookie in &cookies {
-        let c = cookie.clone();
-
-        let cookie_builder = Cookie::build(c.name, c.value)
-            .path(c.path)
-            .domain(c.domain)
-            .same_site(cookie.clone().get_same_site())
-            .finish();
-
-        driver.add_cookie(cookie_builder).await.unwrap();
-    }
-}
-
-async fn preform_search(driver: &mut WebDriver) -> WebDriverResult<()> {
+async fn preform_upload(driver: &mut WebDriver, video: Video) -> WebDriverResult<()> {
     driver.goto("https://www.youtube.com").await?;
 
-    //  let elem_form = driver.find(By::Id("search-form")).await?;
+    // let elem_form = driver.find(By::Id("search-form")).await?;
 
-    add_cookie(driver).await;
-    driver.refresh().await?;
+    cookies::add_cookie(driver).await; // add_cookie(driver).await;
+                                       // driver.refresh().await?;
 
-    tokio::time::sleep(Duration::from_secs_f32(0.25)).await;
+    // tokio::time::sleep(Duration::from_secs_f32(0.25)).await;
 
     //let elem_button = driver.find(By::Css("input[type='submit']")).await?;
     //elem_button.click().await?;
@@ -73,28 +28,39 @@ async fn preform_search(driver: &mut WebDriver) -> WebDriverResult<()> {
     tokio::time::sleep(Duration::from_secs_f32(0.25)).await;
 
     // Find element from element.
-    let elem_text = driver.find(By::Css("input[type='file']")).await?;
-    // Type in the search terms.
-    elem_text.send_keys("C:/Users/godle/OneDrive/Desktop/Movie Edit/Clips/1.mp4").await?;
+    driver
+        .query(By::Css("input[type='file']"))
+        .wait(Duration::from_secs_f32(15.0), Duration::from_secs_f32(0.50))
+        .first()
+        .await?
+        .send_keys(video.path)
+        .await?;
 
-    //this needs to be a variable - it takes a long time to uploade and this will be Variable 
-    tokio::time::sleep(Duration::from_secs_f32(5.5)).await;
+    // This waits until the title is displayed
+    driver
+        .query(By::Css(
+            "div[class='input-container title style-scope ytcp-video-metadata-editor-basics']",
+        ))
+        .wait(Duration::from_secs_f32(60.0), Duration::from_secs_f32(1.0))
+        .first()
+        .await?
+        .find(By::Css("div[id='textbox']"))
+        .await?
+        .send_keys(video.title)
+        .await?;
 
-   
-    let elem_title = driver.find(By::Css("div[id='textbox']")).await?;
-    // Type in the search terms.
-    elem_title.send_keys("Test Title").await?;
-
-
-    tokio::time::sleep(Duration::from_secs_f32(0.5)).await;
-
-     //this does not work need to get it down 1
-    let elem_Desc = driver.find(By::Css("div[id='textbox']")).await?;
-    // Type in the search terms.
-    elem_Desc.send_keys("Test desc").await?;
-
-    // Look for header to implicitly wait for the page to load.
-    // let stat = driver.find(By::Id("result-stats")).await?;
+    // This waits until the title is displayed
+    driver
+        .query(By::Css(
+            "div[class='input-container description style-scope ytcp-video-metadata-editor-basics']"
+        ))
+        .wait(Duration::from_secs_f32(60.0), Duration::from_secs_f32(1.0))
+        .first()
+        .await?
+        .find(By::Css("div[id='textbox']"))
+        .await?
+        .send_keys(video.description)
+        .await?;
 
     // stat.screenshot(&PathBuf::from("stat.png")).await.unwrap();
     // let s = stat.text().await?;
@@ -109,7 +75,14 @@ async fn main() -> WebDriverResult<()> {
     let caps = DesiredCapabilities::chrome();
     let mut driver = WebDriver::new("http://localhost:9515", caps).await?;
 
-    let result = preform_search(&mut driver).await;
+    let video = Video {
+        title: "Test Title".to_string(),
+        description: "Test description".to_string(),
+        path: r"C:\Users\jacob\OneDrive\Desktop\Rust project\rustyoutubeupload\video.mp4"
+            .to_string(),
+    };
+
+    let result = preform_upload(&mut driver, video).await;
 
     match result {
         Ok(_) => println!("Successfully Ran Process"),
