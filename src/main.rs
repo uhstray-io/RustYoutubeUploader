@@ -5,8 +5,10 @@ use thirtyfour::prelude::*;
 
 mod cookies;
 mod video;
+mod chromedriver;
 
 use video::Video;
+use chromedriver::ChromeDriver;
 
 async fn preform_upload(driver: &mut WebDriver, video: Video) -> WebDriverResult<()> {
     driver.goto("https://www.youtube.com").await?;
@@ -72,6 +74,9 @@ async fn preform_upload(driver: &mut WebDriver, video: Video) -> WebDriverResult
 
 #[tokio::main]
 async fn main() -> WebDriverResult<()> {
+
+    ChromeDriver::new().await;
+
     let caps = DesiredCapabilities::chrome();
     let mut driver = WebDriver::new("http://localhost:9515", caps).await?;
 
