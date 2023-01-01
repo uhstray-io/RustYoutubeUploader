@@ -1,4 +1,5 @@
 /target
+/chromedriver
 *.png
 configs/cookies.json
 *.mp4
