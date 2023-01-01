@@ -59,7 +59,7 @@ async fn download_chromedriver(version: String) {
         .unwrap()
         .unwrap();
 
-    let    specific_version = specific_version_xml.trim_end_matches("/");
+    let specific_version = specific_version_xml.trim_end_matches("/");
 
     // dbg!(&specific_version);
 
@@ -72,9 +72,9 @@ async fn download_chromedriver(version: String) {
     );
     let res = reqwest::get(url2).await.unwrap().bytes().await.unwrap();
 
-    fs::create_dir("/chromedriver").await.unwrap();
+    tokio::fs::create_dir_all("./chromedriver/").await.unwrap();
 
-    let mut file = fs::File::create("file.zip").await.unwrap();
+    let mut file = fs::File::create(format!("./chromedriver/{version}.zip")).await.unwrap();
     file.write_all(&res).await.unwrap();
 }
 
