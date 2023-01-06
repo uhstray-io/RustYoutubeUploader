@@ -3,24 +3,26 @@ use std::time::Duration;
 use terminal_color_builder::OutputFormatter as tcb;
 use thirtyfour::prelude::*;
 
+mod chromedriver;
 mod cookies;
 mod video;
 
+use chromedriver::ChromeDriver;
 use video::Video;
 
-async fn preform_upload(driver: &mut WebDriver, video: Video) -> WebDriverResult<()> {
-    driver.goto("https://www.youtube.com").await?;
+async fn preform_upload(webdriver: &mut WebDriver, video: Video) -> WebDriverResult<()> {
+    webdriver.goto("https://www.youtube.com").await?;
 
     // let elem_form = driver.find(By::Id("search-form")).await?;
 
-    cookies::add_cookie(driver).await; // add_cookie(driver).await;
-                                       // driver.refresh().await?;
+    cookies::add_cookie(webdriver).await; // add_cookie(driver).await;
+                                          // driver.refresh().await?;
 
     // tokio::time::sleep(Duration::from_secs_f32(0.25)).await;
 
     //let elem_button = driver.find(By::Css("input[type='submit']")).await?;
     //elem_button.click().await?;
-    driver.goto("https://www.youtube.com/upload").await?;
+    webdriver.goto("https://www.youtube.com/upload").await?;
 
     //let elem_button = driver.find(By::Css("button[id='button']")).await?;
     //elem_button.click().await?;
@@ -28,7 +30,7 @@ async fn preform_upload(driver: &mut WebDriver, video: Video) -> WebDriverResult
     tokio::time::sleep(Duration::from_secs_f32(0.25)).await;
 
     // Find element from element.
-    driver
+    webdriver
         .query(By::Css("input[type='file']"))
         .wait(Duration::from_secs_f32(15.0), Duration::from_secs_f32(0.50))
         .first()
@@ -37,7 +39,7 @@ async fn preform_upload(driver: &mut WebDriver, video: Video) -> WebDriverResult
         .await?;
 
     // This waits until the title is displayed
-    driver
+    webdriver
         .query(By::Css(
             "div[class='input-container title style-scope ytcp-video-metadata-editor-basics']",
         ))
@@ -50,7 +52,7 @@ async fn preform_upload(driver: &mut WebDriver, video: Video) -> WebDriverResult
         .await?;
 
     // This waits until the title is displayed
-    driver
+    webdriver
         .query(By::Css(
             "div[class='input-container description style-scope ytcp-video-metadata-editor-basics']"
         ))
@@ -66,7 +68,7 @@ async fn preform_upload(driver: &mut WebDriver, video: Video) -> WebDriverResult
 
 
     // Checking the not for Kids button 
-    driver
+    webdriver
         .query(By::Css("div[class='input-container style-scope ytcp-video-metadata-editor-basics']"))
         .wait(Duration::from_secs_f32(5.0), Duration::from_secs_f32(0.10))
         .first()
@@ -80,7 +82,7 @@ async fn preform_upload(driver: &mut WebDriver, video: Video) -> WebDriverResult
 
 
     //click the show more button    
-    driver
+    webdriver
         .query(By::Css("div[class='toggle-section style-scope ytcp-video-metadata-editor']"))
         .wait(Duration::from_secs_f32(5.0), Duration::from_secs_f32(0.10))
         .first()
@@ -94,7 +96,7 @@ async fn preform_upload(driver: &mut WebDriver, video: Video) -> WebDriverResult
 
 
     //Adding Tags this is not working 
-    //driver
+    //webdriver
     //    .query(By::Css("div[class='chip-and-bar style-scope ytcp-chip-bar']"))
     //    .wait(Duration::from_secs_f32(20.0), Duration::from_secs_f32(1.0))
     //   .first()
@@ -116,8 +118,10 @@ async fn preform_upload(driver: &mut WebDriver, video: Video) -> WebDriverResult
 
 #[tokio::main]
 async fn main() -> WebDriverResult<()> {
+    let mut chromedriver = ChromeDriver::new().await;
+
     let caps = DesiredCapabilities::chrome();
-    let mut driver = WebDriver::new("http://localhost:9515", caps).await?;
+    let mut webdriver = WebDriver::new("http://localhost:9515", caps).await?;
 
     let video = Video {
         title: "Test Title".to_string(),
@@ -128,7 +132,7 @@ async fn main() -> WebDriverResult<()> {
         tag: "Minecraft" .to_string()
     };
 
-    let result = preform_upload(&mut driver, video).await;
+    let result = preform_upload(&mut webdriver, video).await;
 
     match result {
         Ok(_) => println!("Successfully Ran Process"),
@@ -138,8 +142,10 @@ async fn main() -> WebDriverResult<()> {
         ),
     }
 
-    // Always explicitly close the browser.
-    //driver.quit().await?;
+    // Always explicitly close the browser, then close the chrome driver.
+    webdriver.quit().await?;
+
+    chromedriver.stop_driver().await;
 
     Ok(())
 }

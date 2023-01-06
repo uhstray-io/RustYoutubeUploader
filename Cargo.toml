@@ -7,9 +7,15 @@ edition = "2021"
 
 [dependencies]
 tokio = "1.23.0"
+reqwest = { version = "0.11.13", features = ["json"] }
+
 selenium-rs = "0.1.2"
 thirtyfour = "0.31.0"
 terminal_color_builder = "0.1.1"
 
-serde = {version = "1.0.151", features = ["derive"]}
+zip = "0.6.3"
+
+serde = { version = "1.0.151", features = ["derive"] }
 serde_json = "1.0.91"
+serde_xml = "0.9.1"
+roxmltree = "0.16.0"
