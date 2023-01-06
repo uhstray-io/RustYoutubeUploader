@@ -1,10 +1,9 @@
 use std::env;
-use std::io;
+use std::io::Write;
 use std::path::Path;
 use std::process::{Child, Command};
 
-use tokio::{self, fs, io::AsyncWriteExt};
-use zip::{self, ZipArchive};
+use zip::ZipArchive;
 
 pub struct ChromeDriver {
     child_process: Child,
@@ -16,39 +15,36 @@ impl ChromeDriver {
         let specific_version = get_specific_version(chrome_version).await;
 
         // If that version doesnt exists in the chrome driver folder, download it
-        let path = format!("/chromedriver/{specific_version}.zip");
-        if !std::path::Path::exists(Path::new(path.as_str())) {
+        let path = Path::new("chromedriver").join(&specific_version);
+        if !path.exists() {
             download_chromedriver(&specific_version).await;
         }
 
-        //start driver
+        // Start Chrome driver
         let child_process = start_driver(&specific_version).await;
 
         ChromeDriver { child_process }
     }
 
     pub async fn stop_driver(&mut self) {
-        dbg!(self.child_process.id());
         self.child_process.kill().expect("Cant kill driver process");
-        // self.child_process.wait().expect("Waiting for responce from chromedriver");
+        // self.child_process.wait().expect("Waiting for responce from chromedriver"); // This may be required on other platforms
     }
 }
 
 async fn start_driver(specific_version: &str) -> Child {
-    let a = match env::consts::OS {
-        "windows" => Command::new(format!(r".\chromedriver\{}.exe", specific_version))
-            // .stdout(std::process::Stdio::null())
-            // .stderr(std::process::Stdio::null())
-            .spawn(),
+    match env::consts::OS {
+        "windows" => Command::new(format!(
+            ".\\chromedriver\\{specific_version}\\chromedriver.exe"
+        ))
+        // .stdout(std::process::Stdio::null())
+        // .stderr(std::process::Stdio::null())
+        .spawn(),
         "linux" => todo!("Add the Chrome driver Exacutable path for Linux"),
         "macos" => todo!("Add the Chrome driver Exacutable path for MacOs"),
         _ => panic!("Could not determine OS in use."),
     }
-    .expect("chromedriver command failed to start");
-
-    dbg!(a.id());
-
-    a
+    .expect("chromedriver command failed to start")
 }
 
 async fn get_specific_version(version: String) -> String {
@@ -114,43 +110,21 @@ async fn download_chromedriver(specific_version: &str) {
         .await
         .unwrap();
 
-    tokio::fs::create_dir_all("./chromedriver/").await.unwrap();
+    let folder = Path::new("chromedriver").join(specific_version);
+    let zip_path = folder.clone().join("download.zip");
 
-    let zip_filename = format!("./chromedriver/{specific_version}.zip");
-    let mut file = fs::File::create(&zip_filename).await.unwrap();
-    file.write_all(&download_file).await.unwrap();
+    tokio::fs::create_dir_all(&folder).await.unwrap();
 
-    unzip_file(&zip_filename, "./chromedriver", specific_version);
-}
+    let mut file = std::fs::OpenOptions::new()
+        .create_new(true)
+        .read(true)
+        .write(true)
+        .open(&zip_path)
+        .unwrap();
 
-fn unzip_file(zip_path: &str, dest_dir: &str, dest_name: &str) {
-    let file = std::fs::File::open(zip_path).unwrap();
-    let mut zip = ZipArchive::new(file).unwrap();
+    file.write_all(&download_file).unwrap();
 
-    for i in 0..zip.len() {
-        let mut file = zip.by_index(i).unwrap();
-
-        let extension = match env::consts::OS {
-            "windows" => ".exe",
-            _ => "",
-        }
-        .to_string();
-
-        let outpath = format!("{dest_dir}/{dest_name}{extension}");
-
-        // std::fs::create_dir_all(&outpath).unwrap();
-        let mut outfile = std::fs::File::create(&outpath).unwrap();
-        io::copy(&mut file, &mut outfile).unwrap();
-
-        // Get and Set permissions
-        #[cfg(unix)]
-        {
-            // std::os::unix::fs::PermissionsExt;
-            if let Some(mode) = file.unix_mode() {
-                std::fs::set_permissions(&outpath, std::fs::Permissions::from_mode(mode)).unwrap();
-            }
-        }
-    }
+    ZipArchive::new(file).unwrap().extract(folder).unwrap();
 }
 
 fn get_chrome_version() -> String {
