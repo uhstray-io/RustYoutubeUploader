@@ -68,7 +68,7 @@ async fn preform_upload(webdriver: &mut WebDriver, video: Video) -> WebDriverRes
 
 
     // Checking the not for Kids button 
-    driver
+    webdriver
         .query(By::Css("div[class='input-container style-scope ytcp-video-metadata-editor-basics']"))
         .wait(Duration::from_secs_f32(5.0), Duration::from_secs_f32(0.10))
         .first()
@@ -82,7 +82,7 @@ async fn preform_upload(webdriver: &mut WebDriver, video: Video) -> WebDriverRes
 
 
     //click the show more button    
-    driver
+    webdriver
         .query(By::Css("div[class='toggle-section style-scope ytcp-video-metadata-editor']"))
         .wait(Duration::from_secs_f32(5.0), Duration::from_secs_f32(0.10))
         .first()
@@ -96,7 +96,7 @@ async fn preform_upload(webdriver: &mut WebDriver, video: Video) -> WebDriverRes
 
 
     //Adding Tags this is not working 
-    //driver
+    //webdriver
     //    .query(By::Css("div[class='chip-and-bar style-scope ytcp-chip-bar']"))
     //    .wait(Duration::from_secs_f32(20.0), Duration::from_secs_f32(1.0))
     //   .first()
