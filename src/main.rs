@@ -64,6 +64,50 @@ async fn preform_upload(webdriver: &mut WebDriver, video: Video) -> WebDriverRes
         .send_keys(video.description)
         .await?;
 
+
+
+
+    // Checking the not for Kids button 
+    driver
+        .query(By::Css("div[class='input-container style-scope ytcp-video-metadata-editor-basics']"))
+        .wait(Duration::from_secs_f32(5.0), Duration::from_secs_f32(0.10))
+        .first()
+        .await?
+        .query (By::XPath(r"//*[@id='audience']/ytkc-made-for-kids-select/div[4]/tp-yt-paper-radio-group/tp-yt-paper-radio-button[2]"))
+        .wait(Duration::from_secs_f32(5.0), Duration::from_secs_f32(0.10))
+        .first()
+        .await? 
+        .click()
+        .await?;
+
+
+    //click the show more button    
+    driver
+        .query(By::Css("div[class='toggle-section style-scope ytcp-video-metadata-editor']"))
+        .wait(Duration::from_secs_f32(5.0), Duration::from_secs_f32(0.10))
+        .first()
+        .await?
+        .query (By::XPath(r"//*[@id='toggle-button']"))
+        .wait(Duration::from_secs_f32(5.0), Duration::from_secs_f32(0.10))
+        .first()
+        .await? 
+        .click()
+        .await?;
+
+
+    //Adding Tags this is not working 
+    //driver
+    //    .query(By::Css("div[class='chip-and-bar style-scope ytcp-chip-bar']"))
+    //    .wait(Duration::from_secs_f32(20.0), Duration::from_secs_f32(1.0))
+    //   .first()
+    //    .await?
+    //    .find(By::XPath(r"//*[@id='text-input']"))
+    //    .await?
+    //    .click()
+    //    //.send_keys(video.tag)
+    //    .await?;
+
+
     // stat.screenshot(&PathBuf::from("stat.png")).await.unwrap();
     // let s = stat.text().await?;
 
@@ -82,8 +126,10 @@ async fn main() -> WebDriverResult<()> {
     let video = Video {
         title: "Test Title".to_string(),
         description: "Test description".to_string(),
-        path: r"C:\Users\jacob\OneDrive\Desktop\Rust project\rustyoutubeupload\video.mp4"
+        path: r"C:\Users\godle\OneDrive\Desktop\Movie Edit\Clips\clip1.mp4"
             .to_string(),
+        madeforkids: "false".to_string(),
+        tag: "Minecraft" .to_string()
     };
 
     let result = preform_upload(&mut webdriver, video).await;
