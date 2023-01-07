@@ -41,7 +41,12 @@ async fn start_driver(specific_version: &str) -> Child {
         // .stderr(std::process::Stdio::null())
         .spawn(),
         "linux" => todo!("Add the Chrome driver Exacutable path for Linux"),
-        "macos" => todo!("Add the Chrome driver Exacutable path for MacOs"),
+        "macos" => Command::new(
+            Path::new("chromedriver")
+                .join(specific_version)
+                .join("chromedriver"),
+        )
+        .spawn(),
         _ => panic!("Could not determine OS in use."),
     }
     .expect("chromedriver command failed to start")

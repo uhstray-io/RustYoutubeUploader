@@ -30,10 +30,10 @@ impl CookieConfig {
 
 /// add_cookie imports cookies that you've exported from your browser and
 /// applys them to the driver. Once you reloaded, you should be logged in.
-pub async fn add_cookie(driver: &mut WebDriver) {
-    let s = fs::read_to_string("configs/cookies.json").await.unwrap();
+pub async fn add_cookie(driver: &mut WebDriver) -> std::io::Result<()> {
+    let cookies_file = fs::read_to_string("configs/cookies.json").await?;
 
-    let cookies: Vec<CookieConfig> = serde_json::from_str(&s).unwrap();
+    let cookies: Vec<CookieConfig> = serde_json::from_str(&cookies_file).unwrap();
 
     for cookie in &cookies {
         let c = cookie.clone();
@@ -46,4 +46,6 @@ pub async fn add_cookie(driver: &mut WebDriver) {
 
         driver.add_cookie(cookie_builder).await.unwrap();
     }
+
+    Ok(())
 }

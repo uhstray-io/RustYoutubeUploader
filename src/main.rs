@@ -12,7 +12,7 @@ use video::Video;
 
 async fn preform_upload(webdriver: &mut WebDriver, video: Video) -> WebDriverResult<()> {
     webdriver.goto("https://www.youtube.com").await?;
-    cookies::add_cookie(webdriver).await;
+    cookies::add_cookie(webdriver).await?;
 
     webdriver.goto("https://www.youtube.com/upload").await?;
 
